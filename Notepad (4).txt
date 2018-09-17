@@ -1,0 +1,275 @@
+package notepad;
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.datatransfer.*;
+import java.io.*;
+import javax.swing.JOptionPane;
+public class Notepad extends Frame{
+    String filename,st,ss;
+    TextArea tx;
+    Clipboard clip = getToolkit().getSystemClipboard();
+     JOptionPane j;
+    Notepad()
+    {
+    setIcon();    
+    setLayout(new GridLayout(1,1));
+    tx=new TextArea();
+    add(tx);
+    MenuBar mb=new MenuBar();
+    //creating filemenu
+    Menu F=new Menu("FILE");
+      MenuItem n=new MenuItem("NEW");
+      MenuItem o=new MenuItem("OPEN");
+      MenuItem s=new MenuItem("SAVE");
+      MenuItem e=new MenuItem("EXIT");
+    n.addActionListener(new New());
+    F.add(n);
+    o.addActionListener(new Open());
+    F.add(o);
+    s.addActionListener(new Save());
+    F.add(s);
+    e.addActionListener(new Exit());
+    F.add(e);
+    mb.add(F);
+    //creating edit menu
+    Menu E =new Menu("EDIT");
+      MenuItem cut=new MenuItem("CUT");
+      MenuItem copy=new MenuItem("COPY");
+      MenuItem paste=new MenuItem("PASTE");
+    cut.addActionListener(new Cut());
+    E.add(cut);
+    copy.addActionListener(new Copy());
+    E.add(copy);
+    paste.addActionListener(new Paste());
+    E.add(paste);
+    mb.add(E); 
+    Menu clr=new Menu("CLEAR");
+    MenuItem clear=new MenuItem("CLEAR");
+    clear.addActionListener(new Clear());
+    clr.add(clear);
+    mb.add(clr);
+      
+    //creating undo clear menu
+    Menu udclr=new Menu("UNDO CLEAR");
+      MenuItem uclear=new MenuItem("UNDO CLEAR");
+      udclr.addActionListener(new UndoClear());
+      udclr.add(uclear);
+      mb.add(udclr);
+    //creatingrepeat menu
+    Menu rpt=new Menu("REPEAT");
+      MenuItem repeat=new MenuItem("REPEAT");
+      repeat.addActionListener(new REPEAT());
+      rpt.add(repeat);
+      mb.add(rpt);
+      //creating a about menu
+      Menu A=new Menu ("ABOUT");
+      A.add("THIS NOTEPAD IS CREATED BY:-");
+      A.add("ACHILLES PEREIRA");
+      A.add("ABHISHEK C. SALIAN");
+      A.add("VISHAL SANGHAVI");    
+      A.add("NASIR  SHAIKH");
+      mb.add(A);
+      
+     //setting up the menubar
+    setMenuBar(mb);
+    
+    mylistener mylist = new mylistener();
+    addWindowListener(mylist);   
+  }
+
+ private void setIcon(){
+      //setting up icon image from package which is pasted from other folder
+        setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("iconn.png")));
+    }
+  
+ class mylistener extends WindowAdapter          //Creating mylistener class
+    {    
+        /*inheriting from windowsadapter class in javalibrary*/ 
+      public void windowClosing(WindowEvent e)       
+      {
+      System.exit(0);
+      }       
+    }
+    //creating aNew class
+ class New implements ActionListener
+    {
+       public void actionPerformed(ActionEvent e)
+    {
+          tx.setText(" ");
+          setTitle(filename);
+    }          
+ }
+    
+ class Open implements ActionListener
+  {
+         public void actionPerformed(ActionEvent e)
+             {
+             FileDialog fd = new FileDialog(Notepad.this, "select File",FileDialog.LOAD);
+             fd.show();
+             if (fd.getFile()!=null)
+                 {
+                 filename = fd.getDirectory() + fd.getFile();
+                 setTitle(filename);
+                 ReadFile();
+             }
+             tx.requestFocus();
+         }
+     }
+class Save implements ActionListener
+    {
+         public void actionPerformed(ActionEvent e)
+             {
+             FileDialog fd = new FileDialog(Notepad.this,"Save File",FileDialog.SAVE);
+             
+             fd.show();
+             if (fd.getFile()!=null)
+                 {
+                 filename = fd.getDirectory() + fd.getFile();
+                 setTitle(filename);
+                 try
+                     {
+                     DataOutputStream d = new DataOutputStream(new FileOutputStream(filename));
+                     String line = tx.getText();
+                     BufferedReader br = new BufferedReader(new StringReader(line));
+                     while((line = br.readLine())!=null)
+                         {
+                         d.writeBytes(line + "\r\n");
+                         d.close();
+                     }
+                 }
+                 catch(Exception ex)
+                     {
+                     System.out.println("File not found");
+                 }
+                 tx.requestFocus();
+             }
+         }
+     }
+ class Exit implements ActionListener
+    {
+         public void actionPerformed(ActionEvent e)
+             {
+             System.exit(0);
+         }
+     }
+ void ReadFile()
+     {
+         BufferedReader d;
+         StringBuffer sb = new StringBuffer();
+         try
+             {
+             d = new BufferedReader(new FileReader(filename));
+             String line;
+             while((line=d.readLine())!=null)
+             sb.append(line + "\n");
+             tx.setText(sb.toString());
+             d.close();
+         }
+         catch(FileNotFoundException fe)
+          {
+             JOptionPane.showMessageDialog(null, "File not Found!!");
+         }
+         catch(IOException ioe){}
+     }
+    
+ class Cut implements ActionListener
+ {
+         public void actionPerformed(ActionEvent e)
+             {
+             String sel = tx.getSelectedText();
+             StringSelection ss = new StringSelection(sel);
+             clip.setContents(ss,ss);
+             tx.replaceRange(" ",tx.getSelectionStart(),tx.getSelectionEnd());
+         }
+     }
+ 
+ class Copy implements ActionListener
+  {
+         public void actionPerformed(ActionEvent e)
+             {
+             String sel = tx.getSelectedText();
+             StringSelection clipString = new StringSelection(sel);
+             clip.setContents(clipString,clipString);
+         }
+     }
+ class Paste implements ActionListener
+ {
+         public void actionPerformed(ActionEvent e)
+             {
+             Transferable cliptran = clip.getContents(Notepad.this);
+             try
+                 {
+                 String sel = (String) cliptran.getTransferData(DataFlavor.stringFlavor);
+                 tx.replaceRange(sel,tx.getSelectionStart(),tx.getSelectionEnd());
+             }
+             catch(Exception exc)
+                 {
+                 System.out.println("not a string flavour");
+             }
+         }
+     }
+ 
+ class Clear implements ActionListener 
+ { public void actionPerformed(ActionEvent e)
+       { 
+        tx.selectAll();
+        st=tx.getSelectedText();
+        tx.setText(tx.getText().replace(tx.getSelectedText()," "));
+       }       
+        
+  }
+    
+ class UndoClear implements ActionListener
+ {  public void actionPerformed(ActionEvent e)
+    {
+     tx.setText(st);   
+    }           
+    }
+ 
+ class REPEAT implements ActionListener
+ {
+       public void actionPerformed(ActionEvent e)
+      { String s5;
+        int n;
+        ss = tx.getSelectedText();
+             StringSelection clipString = new StringSelection(ss);
+             clip.setContents(clipString,clipString);
+              s5=ss;
+        String s3=JOptionPane.showInputDialog("Enter the word:");
+        if(s3!=null)
+        {
+         String s4=JOptionPane.showInputDialog("Enter number of times the word"+" "+s3+" " +"you want to repeat");
+         n=Integer.parseInt(s4);             
+          int i=0;
+          while(i<n)
+          {
+              tx.append(" ");
+              tx.append(s3);
+              i++;
+          }
+        }
+           else
+         {
+           s3=null;
+           n=0;
+           tx.setText(ss);
+         }
+   
+         System.out.println(s5);
+      }
+  }  
+  //Main Method
+public static void main(String args [])
+ {
+    Frame f = new Notepad();
+    f.setSize(800,500);
+    f.setBounds(300, 100, 800,500);
+    f.setVisible(true);
+    f.show();
+    f.setTitle("$NOTEPAD$");
+    JOptionPane.showMessageDialog(null,"HELLO!!! WELCOME TO $NOTEPAD$");
+    
+   }  
+
+}
+    
