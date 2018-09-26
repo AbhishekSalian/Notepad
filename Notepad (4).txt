@@ -64,10 +64,7 @@ public class Notepad extends Frame{
       //creating a about menu
       Menu A=new Menu ("ABOUT");
       A.add("THIS NOTEPAD IS CREATED BY:-");
-      A.add("ACHILLES PEREIRA");
-      A.add("ABHISHEK C. SALIAN");
-      A.add("VISHAL SANGHAVI");    
-      A.add("NASIR  SHAIKH");
+      A.add("ABHISHEK C. SALIAN"); 
       mb.add(A);
       
      //setting up the menubar
